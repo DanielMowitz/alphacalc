@@ -4,8 +4,10 @@ use std::thread;
 use flume;
 use image::*;
 
-const U:f64 = 1.6605390666050e-27; // Source: https://de.wikipedia.org/wiki/Atomare_Masseneinheit
-const M_ALPHA:f64 = 6.644657335720e-27; // Source: https://de.wikipedia.org/wiki/Alphastrahlung;
+// Source: https://de.wikipedia.org/wiki/Atomare_Masseneinheit
+const U:f64 = 1.6605390666050e-27;
+// Source: https://de.wikipedia.org/wiki/Alphastrahlung;
+const M_ALPHA:f64 = 6.644657335720e-27;
 const MEV_TO_JOULE:f64 = 1.0/6241509000000.0;
 const FEMTO:f64 = 10e-15;
 const MEGA:f64 = 10e6;
@@ -27,7 +29,8 @@ impl Particle{
 fn calculate_acceleration(x:f64, y:f64, z_a:f64, z_k:f64, a:f64) -> (f64, f64){
 	// Quantum theory function for particle acceleration. z_a and z_k are the proton number of the
 	// alpha particle and the atom respctively. a is the mass number of the alpha particle.
-	let mult = fine_structure_const*plancks_constant*speed_of_light_vac*z_a*z_k/(U*a*(x.powi(2)+y.powi(2)).sqrt().powi(3));
+	let mult = fine_structure_const*plancks_constant*speed_of_light_vac*z_a*z_k/
+		(U*a*(x.powi(2)+y.powi(2)).sqrt().powi(3));
 	return (mult*x, mult*y);
 }
 
@@ -40,7 +43,8 @@ fn main() {
 	let energy = 5.0 * MEGA * MEV_TO_JOULE;
 	
 	// Calculation of speed from energy according to SRT.
-	let speed = energy.sqrt()*speed_of_light_vac*(2.0*speed_of_light_vac.powi(2)*M_ALPHA + energy).sqrt()
+	let speed = energy.sqrt()*speed_of_light_vac*
+		(2.0*speed_of_light_vac.powi(2)*M_ALPHA + energy).sqrt()
 		/(speed_of_light_vac.powi(2)*M_ALPHA + energy);
 	
 	// See calculate_acceleration comment for the meanung of these variables.
@@ -63,14 +67,18 @@ fn main() {
 	let (tx, rx) = flume::unbounded();
 
 	// Moves the particle and uses calculate_acceleration to get the new velocity.
-	let update_and_send = move |tx: flume::Sender<(i32, f64, f64)>, mut particle: Particle, num| {
+	let update_and_send = 
+		move |tx: flume::Sender<(i32, f64, f64)>, mut particle: Particle, num| {
 		for _ in 0..(10000000000/performance) {
 			tx.send((num, particle.pos.0/FEMTO, particle.pos.1/FEMTO)).unwrap();
 		
 			particle.pos.0 = particle.pos.0 + particle.vel.0 * delta_t;
 			particle.pos.1 = particle.pos.1 + particle.vel.1 * delta_t;
 		
-			let (dv_x, dv_y) = calculate_acceleration(particle.pos.0, particle.pos.1, z_a, z_k, a);
+			let (dv_x, dv_y) = calculate_acceleration(particle.pos.0,
+				particle.pos.1,
+				z_a,
+				z_k, a);
 			particle.vel.0 = particle.vel.0 + dv_x * delta_t;
 			particle.vel.1 = particle.vel.1 + dv_y * delta_t;
 		}
@@ -100,17 +108,23 @@ fn main() {
 	for message in rx.iter() {
 		if message.1 <= 500.0 && message.2 <= 300.0 {
 			if message.0 == 0 {
-				y10_plot.put_pixel((message.1 + 500.0) as u32, message.2 as u32, Rgb([255, 0, 0]));
+				y10_plot.put_pixel((message.1 + 500.0) as u32,
+				message.2 as u32, Rgb([255, 0, 0]));
 			} else if message.0 == 1 {
-				y15_plot.put_pixel((message.1 + 500.0) as u32, message.2 as u32, Rgb([255, 0, 0]));
+				y15_plot.put_pixel((message.1 + 500.0) as u32,
+				message.2 as u32, Rgb([255, 0, 0]));
 			} else if message.0 == 2 {
-				y30_plot.put_pixel((message.1 + 500.0) as u32, message.2 as u32, Rgb([255, 0, 0]));
+				y30_plot.put_pixel((message.1 + 500.0) as u32,
+				message.2 as u32, Rgb([255, 0, 0]));
 			} else if message.0 == 3 {
-				y50_plot.put_pixel((message.1 + 500.0) as u32, message.2 as u32, Rgb([255, 0, 0]));
+				y50_plot.put_pixel((message.1 + 500.0) as u32,
+				message.2 as u32, Rgb([255, 0, 0]));
 			} else if message.0 == 4 {
-				y100_plot.put_pixel((message.1 + 500.0) as u32, message.2 as u32, Rgb([255, 0, 0]));
+				y100_plot.put_pixel((message.1 + 500.0) as u32,
+				message.2 as u32, Rgb([255, 0, 0]));
 			} else if message.0 == 5 {
-				y200_plot.put_pixel((message.1 + 500.0) as u32, message.2 as u32, Rgb([255, 0, 0]));
+				y200_plot.put_pixel((message.1 + 500.0) as u32,
+				message.2 as u32, Rgb([255, 0, 0]));
 			}
 		}
 	}
