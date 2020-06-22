@@ -85,11 +85,11 @@ fn main() {
 	};
 
 	// Create image buffers.
-	let mut y10_plot = RgbImage::new(1001, 301);
-	let mut y15_plot = RgbImage::new(1001, 301);
-	let mut y30_plot = RgbImage::new(1001, 301);
-	let mut y50_plot = RgbImage::new(1001, 301);
-	let mut y100_plot = RgbImage::new(1001, 301);
+	let mut y10_plot = RgbImage::new(1001, 101);
+	let mut y15_plot = RgbImage::new(1001, 101);
+	let mut y30_plot = RgbImage::new(1001, 101);
+	let mut y50_plot = RgbImage::new(1001, 101);
+	let mut y100_plot = RgbImage::new(1001, 201);
 	let mut y200_plot = RgbImage::new(1001, 301);
 	
 	// Create thread channels and open threads.
@@ -104,27 +104,36 @@ fn main() {
 	// A little Check.
 	println!("v = {}c", speed/speed_of_light_vac);
 
+	// Create array for the y-data at the end of the simulation.
+	let mut final_values = [0.0; 6];
+
 	// Put data from every thread into the according images.
 	for message in rx.iter() {
 		if message.1 <= 500.0 && message.2 <= 300.0 {
 			if message.0 == 0 {
 				y10_plot.put_pixel((message.1 + 500.0) as u32,
 				message.2 as u32, Rgb([255, 0, 0]));
+				final_values[0] = message.2;
 			} else if message.0 == 1 {
 				y15_plot.put_pixel((message.1 + 500.0) as u32,
 				message.2 as u32, Rgb([255, 0, 0]));
+				final_values[1] = message.2;
 			} else if message.0 == 2 {
 				y30_plot.put_pixel((message.1 + 500.0) as u32,
 				message.2 as u32, Rgb([255, 0, 0]));
+				final_values[2] = message.2;
 			} else if message.0 == 3 {
 				y50_plot.put_pixel((message.1 + 500.0) as u32,
 				message.2 as u32, Rgb([255, 0, 0]));
+				final_values[3] = message.2;
 			} else if message.0 == 4 {
 				y100_plot.put_pixel((message.1 + 500.0) as u32,
 				message.2 as u32, Rgb([255, 0, 0]));
+				final_values[4] = message.2;
 			} else if message.0 == 5 {
 				y200_plot.put_pixel((message.1 + 500.0) as u32,
 				message.2 as u32, Rgb([255, 0, 0]));
+				final_values[5] = message.2;
 			}
 		}
 	}
@@ -136,5 +145,10 @@ fn main() {
 	y50_plot.save("y50.png").unwrap();
 	y100_plot.save("y100.png").unwrap();
 	y200_plot.save("y200.png").unwrap();
+
+	// Return final y values.
+	for i in 0..6{
+		println!("Final Value {}: {}", i, final_values[i]);
+	}
 
 }
